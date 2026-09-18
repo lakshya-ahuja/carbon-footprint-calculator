@@ -3,7 +3,7 @@
 
 ---
 
-# Carbon Footprint Tracker
+# Canopy:- Carbon Footprint Tracker
 
 *Smaller choices. Bigger impact.*
 
