@@ -9,7 +9,7 @@
 
 A simple web app that turns your daily activities into a weekly carbon budget. Log a car ride, a meal, or an electricity reading, and it's converted to kg CO₂ using fixed emission factors — no estimating required.
 
-**Live demo:** https://lakshya-ahuja.github.io/carbon-footprint-calculator/hackathon/
+**Live demo:** https://lakshya-ahuja.github.io/carbon-footprint-calculator/
 
 ## Features
 
