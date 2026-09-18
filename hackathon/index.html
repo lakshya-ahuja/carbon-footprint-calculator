@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy — Carbon Footprint Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+/* ---------- Tokens ---------- */
+:root{
+  --paper:#F1EEE3;
+  --paper-raised:#FAF8F1;
+  --ink:#232B1E;
+  --ink-soft:#5B6353;
+  --moss:#4B6B3A;
+  --moss-deep:#33492A;
+  --moss-pale:#DCE5D2;
+  --clay:#AE5A22;
+  --clay-pale:#F3DFCB;
+  --sage:#A9B79C;
+  --line:#D9D3C2;
+  --gold:#B8892B;
+  --danger:#A83C2E;
+  --danger-pale:#F5DAD3;
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  --radius-s:6px;
+  --radius-m:12px;
+  --radius-l:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#191D16;
+    --paper-raised:#20251C;
+    --ink:#EDEAE0;
+    --ink-soft:#AEB4A3;
+    --moss:#7FA766;
+    --moss-deep:#9BC17F;
+    --moss-pale:#28331F;
+    --clay:#D98A4F;
+    --clay-pale:#3A2A1C;
+    --sage:#5C6B52;
+    --line:#333A2C;
+    --gold:#D9AE55;
+    --danger:#E08977;
+    --danger-pale:#3B241F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#191D16;
+  --paper-raised:#20251C;
+  --ink:#EDEAE0;
+  --ink-soft:#AEB4A3;
+  --moss:#7FA766;
+  --moss-deep:#9BC17F;
+  --moss-pale:#28331F;
+  --clay:#D98A4F;
+  --clay-pale:#3A2A1C;
+  --sage:#5C6B52;
+  --line:#333A2C;
+  --gold:#D9AE55;
+  --danger:#E08977;
+  --danger-pale:#3B241F;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+input,select{font-family:inherit;}
+
+::selection{background:var(--moss-pale);}
+
+/* ---------- Layout shell ---------- */
+.app{max-width:1180px;margin:0 auto;padding:0 28px 80px;}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:26px 0 18px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:28px;
+  gap:20px;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand svg{width:34px;height:34px;flex:none;}
+.brand-text h1{
+  font-family:var(--font-display);
+  font-size:23px;
+  font-weight:600;
+  margin:0;
+  letter-spacing:0.2px;
+}
+.brand-text p{margin:1px 0 0;font-size:12.5px;color:var(--ink-soft);}
+
+.nav{display:flex;gap:4px;background:var(--paper-raised);border:1px solid var(--line);border-radius:999px;padding:4px;}
+.nav button{
+  border:none;background:transparent;color:var(--ink-soft);
+  padding:9px 16px;border-radius:999px;font-size:14px;font-weight:500;
+  cursor:pointer;transition:background .15s ease, color .15s ease;
+  white-space:nowrap;
+}
+.nav button.active{background:var(--moss);color:#fff;}
+.nav button:not(.active):hover{color:var(--ink);}
+
+.userchip{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);}
+.userchip .dot{width:8px;height:8px;border-radius:50%;background:var(--moss);}
+
+/* ---------- Onboarding ---------- */
+.onboard{
+  max-width:460px;margin:8vh auto;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  gap:6px;
+}
+.onboard svg{width:56px;height:56px;margin-bottom:6px;}
+.onboard h1{font-family:var(--font-display);font-size:34px;font-weight:600;margin:0 0 4px;line-height:1.15;}
+.onboard p.lede{color:var(--ink-soft);font-size:15px;margin:0 0 30px;max-width:360px;}
+.onboard form{width:100%;display:flex;flex-direction:column;gap:14px;text-align:left;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+.field input,.field select{
+  width:100%;padding:11px 13px;border-radius:var(--radius-s);
+  border:1px solid var(--line);background:var(--paper-raised);color:var(--ink);
+  font-size:14.5px;
+}
+.field input:focus,.field select:focus,button:focus-visible{
+  outline:2px solid var(--moss);outline-offset:1px;
+}
+.field .hint{font-size:12px;color:var(--ink-soft);margin-top:5px;}
+.btn-primary{
+  background:var(--moss);color:#fff;border:none;border-radius:999px;
+  padding:13px 20px;font-size:14.5px;font-weight:600;cursor:pointer;
+  transition:background .15s ease;
+}
+.btn-primary:hover{background:var(--moss-deep);}
+.btn-ghost{
+  background:transparent;color:var(--ink);border:1px solid var(--line);
+  border-radius:999px;padding:11px 18px;font-size:14px;font-weight:500;cursor:pointer;
+}
+.btn-ghost:hover{border-color:var(--moss);color:var(--moss);}
+
+/* ---------- Sections / cards ---------- */
+.grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;}
+.stack{display:flex;flex-direction:column;gap:22px;}
+.panel{
+  background:var(--paper-raised);border:1px solid var(--line);
+  border-radius:var(--radius-l);padding:26px;
+}
+.panel h2{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0 0 4px;}
+.panel .sub{font-size:13px;color:var(--ink-soft);margin:0 0 18px;}
+
+.section-title{font-family:var(--font-display);font-size:26px;font-weight:600;margin:0 0 4px;}
+.section-sub{color:var(--ink-soft);font-size:14px;margin:0 0 24px;}
+
+/* ---------- Dashboard ring ---------- */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 4px;}
+.ring-figures{text-align:center;margin-top:-158px;pointer-events:none;}
+.ring-figures .big{font-family:var(--font-display);font-size:36px;font-weight:600;display:block;}
+.ring-figures .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.ring-status{margin-top:158px;text-align:center;font-size:13.5px;color:var(--ink-soft);max-width:220px;}
+.ring-status.ok{color:var(--moss);}
+.ring-status.over{color:var(--danger);}
+
+.breakdown{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
+.brow{display:flex;align-items:center;gap:10px;font-size:13.5px;}
+.brow .swatch{width:10px;height:10px;border-radius:3px;flex:none;}
+.brow .name{width:110px;flex:none;color:var(--ink-soft);}
+.brow .track{flex:1;height:7px;background:var(--moss-pale);border-radius:99px;overflow:hidden;}
+.brow .fill{height:100%;border-radius:99px;}
+.brow .val{width:64px;text-align:right;flex:none;font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
+
+.nudge{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:16px 18px;border-radius:var(--radius-m);
+  border:1px solid var(--danger);background:var(--danger-pale);margin-bottom:20px;
+}
+.nudge.tip{border-color:var(--gold);background:var(--clay-pale);}
+.nudge .icon{font-size:19px;line-height:1;}
+.nudge strong{display:block;font-size:14px;margin-bottom:3px;}
+.nudge p{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.5;}
+
+.quickadd{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:20px;padding-top:20px;border-top:1px solid var(--line);
+}
+.quickadd span{font-size:13px;color:var(--ink-soft);}
+
+/* ---------- Log activity ---------- */
+.logform{display:flex;flex-direction:column;gap:16px;max-width:420px;}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.type-btn{
+  border:1px solid var(--line);background:var(--paper-raised);border-radius:var(--radius-m);
+  padding:12px 6px;text-align:center;cursor:pointer;font-size:12.5px;color:var(--ink-soft);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:border-color .15s ease, color .15s ease, background .15s ease;
+}
+.type-btn .emoji{font-size:20px;}
+.type-btn.active{border-color:var(--moss);color:var(--ink);background:var(--moss-pale);}
+.preview{
+  border:1px dashed var(--line);border-radius:var(--radius-m);
+  padding:16px 18px;display:flex;align-items:center;justify-content:space-between;
+}
+.preview .co2{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--moss-deep);}
+.warn-inline{font-size:12.5px;color:var(--clay);margin-top:-6px;}
+
+/* ---------- History ---------- */
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.filters select{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper-raised);font-size:13px;color:var(--ink);}
+.entry{
+  display:flex;align-items:center;gap:14px;padding:13px 4px;
+  border-bottom:1px solid var(--line);
+}
+.entry:last-child{border-bottom:none;}
+.entry .emoji{font-size:18px;width:30px;text-align:center;flex:none;}
+.entry .meta{flex:1;min-width:0;}
+.entry .meta .top{font-size:14px;font-weight:500;}
+.entry .meta .date{font-size:12px;color:var(--ink-soft);}
+.entry .co2{font-family:var(--font-mono);font-size:13.5px;color:var(--ink-soft);flex:none;}
+.entry .del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:6px;flex:none;}
+.entry .del:hover{color:var(--danger);background:var(--danger-pale);}
+.empty{text-align:center;padding:40px 10px;color:var(--ink-soft);font-size:13.5px;}
+.empty .emoji{font-size:26px;display:block;margin-bottom:8px;}
+
+/* ---------- Target ---------- */
+.target-form{display:flex;gap:12px;align-items:flex-end;max-width:420px;flex-wrap:wrap;}
+.target-form .field{flex:1;min-width:160px;}
+.factor-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.factor-table th,.factor-table td{text-align:left;padding:8px 4px;font-size:13px;border-bottom:1px solid var(--line);}
+.factor-table th{color:var(--ink-soft);font-weight:600;font-size:12px;}
+.factor-table td.num{font-family:var(--font-mono);color:var(--ink-soft);}
+
+footer.credit{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:50px;}
+
+@media (max-width:860px){
+  .grid{grid-template-columns:1fr;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:14px;}
+  .nav{overflow-x:auto;width:100%;}
+  .app{padding:0 16px 60px;}
+}
+@media (max-width:480px){
+  .type-grid{grid-template-columns:repeat(2,1fr);}
+}
+[hidden]{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ONBOARDING -->
+  <section id="view-onboard" class="onboard" hidden>
+    <svg viewBox="0 0 48 48" fill="none"><path d="M24 4C13 4 6 13 6 24c0 3 .6 5.8 1.7 8.3C10 27 16 22 24 22c-6 8-6 15-4 20 1.4.6 2.9 1 4.5 1.2C38.4 41.8 42 33.5 42 24 42 13 35 4 24 4Z" fill="var(--moss)"/><path d="M24 22c8 0 14-5 18-9.7C40.7 8 35.7 4.6 30 4.2 29.3 10 26.7 16.7 24 22Z" fill="var(--moss-deep)"/></svg>
+    <h1>Canopy</h1>
+    <p class="lede">Track your daily activities, see your carbon footprint, and make better choices — one small entry at a time.</p>
+    <form id="onboardForm">
+      <div class="field">
+        <label for="ob-name">Your name</label>
+        <input id="ob-name" type="text" placeholder="e.g. Aanya" required>
+      </div>
+      <div class="field">
+        <label for="ob-target">Weekly CO₂ target (kg)</label>
+        <input id="ob-target" type="number" min="1" step="0.5" value="50" required>
+        <div class="hint">You can change this anytime from the Target tab. A rough starting point is 50 kg/week.</div>
+      </div>
+      <button type="submit" class="btn-primary">Start tracking</button>
+    </form>
+  </section>
+
+  <!-- MAIN APP -->
+  <div id="view-app" hidden>
+    <div class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 48 48" fill="none"><path d="M24 4C13 4 6 13 6 24c0 3 .6 5.8 1.7 8.3C10 27 16 22 24 22c-6 8-6 15-4 20 1.4.6 2.9 1 4.5 1.2C38.4 41.8 42 33.5 42 24 42 13 35 4 24 4Z" fill="var(--moss)"/><path d="M24 22c8 0 14-5 18-9.7C40.7 8 35.7 4.6 30 4.2 29.3 10 26.7 16.7 24 22Z" fill="var(--moss-deep)"/></svg>
+        <div class="brand-text">
+          <h1>Canopy</h1>
+          <p>Smaller choices. Bigger impact.</p>
+        </div>
+      </div>
+      <nav class="nav" id="mainNav">
+        <button data-view="dashboard" class="active">Dashboard</button>
+        <button data-view="log">Log activity</button>
+        <button data-view="history">History</button>
+        <button data-view="target">Target</button>
+      </nav>
+      <div class="userchip"><span class="dot"></span><span id="userChip">—</span></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard">
+      <h2 class="section-title" id="greeting">Good morning</h2>
+      <p class="section-sub" id="weekRangeLabel">This week</p>
+
+      <div id="nudgeSlot"></div>
+
+      <div class="grid">
+        <div class="panel">
+          <h2>This week's footprint</h2>
+          <p class="sub">Logged CO₂ against your weekly target</p>
+          <div class="ring-wrap">
+            <svg id="ringSvg" width="220" height="220" viewBox="0 0 220 220">
+              <circle cx="110" cy="110" r="92" fill="none" stroke="var(--moss-pale)" stroke-width="16"/>
+              <circle id="ringProgress" cx="110" cy="110" r="92" fill="none" stroke="var(--moss)" stroke-width="16" stroke-linecap="round" transform="rotate(-90 110 110)"/>
+            </svg>
+            <div class="ring-figures">
+              <span class="big" id="ringBig">0 kg</span>
+              <span class="lbl" id="ringLbl">of 50 kg target</span>
+            </div>
+            <div class="ring-status" id="ringStatus"></div>
+          </div>
+          <div class="quickadd">
+            <span id="remainingText">Log an activity to get started.</span>
+            <button class="btn-primary" data-goto="log">+ Log activity</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Category breakdown</h2>
+          <p class="sub">Where this week's emissions came from</p>
+          <div class="breakdown" id="breakdownList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG ACTIVITY -->
+    <section id="view-log" hidden>
+      <h2 class="section-title">Log activity</h2>
+      <p class="section-sub">Pick what you did today and we'll work out the CO₂.</p>
+      <div class="panel" style="max-width:520px;">
+        <div class="logform">
+          <div>
+            <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Activity type</label>
+            <div class="type-grid" id="typeGrid"></div>
+          </div>
+          <div class="field">
+            <label id="qtyLabel" for="qtyInput">Distance (km)</label>
+            <input id="qtyInput" type="number" min="0" step="0.1" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="dateInput">Date</label>
+            <input id="dateInput" type="date">
+          </div>
+          <div class="warn-inline" id="absurdWarn" hidden></div>
+          <div class="preview">
+            <div>
+              <div style="font-size:12px;color:var(--ink-soft);">CO₂ produced</div>
+              <div class="co2" id="co2Preview">0.0 kg</div>
+            </div>
+            <button class="btn-primary" id="saveActivityBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="view-history" hidden>
+      <h2 class="section-title">History</h2>
+      <p class="section-sub">Everything you've logged, filterable by category and date.</p>
+      <div class="panel">
+        <div class="filters">
+          <select id="filterCategory">
+            <option value="All">All categories</option>
+            <option value="Transportation">Transportation</option>
+            <option value="Electricity">Electricity</option>
+            <option value="Food">Food</option>
+          </select>
+          <select id="filterRange">
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="all">All time</option>
+          </select>
+        </div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <!-- TARGET -->
+    <section id="view-target" hidden>
+      <h2 class="section-title">Weekly target</h2>
+      <p class="section-sub">Set the goal you're aiming to stay under each week (Monday–Sunday).</p>
+      <div class="grid">
+        <div class="panel">
+          <h2>Update target</h2>
+          <p class="sub">Current target and progress</p>
+          <form class="target-form" id="targetForm">
+            <div class="field">
+              <label for="targetInput">Weekly CO₂ target (kg)</label>
+              <input id="targetInput" type="number" min="1" step="0.5" required>
+            </div>
+            <button type="submit" class="btn-primary">Save target</button>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Fixed CO₂ factors</h2>
+          <p class="sub">Used to calculate every activity you log</p>
+          <table class="factor-table">
+            <thead><tr><th>Activity</th><th>Factor</th></tr></thead>
+            <tbody id="factorTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer class="credit">Canopy · a hackathon prototype · data is stored only in this browser</footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Config: fixed CO2 factors ---------- */
+  const ACTIVITY_TYPES = {
+    car:        { label:'Car',           category:'Transportation', unit:'km',   unitLabel:'Distance (km)',        factor:0.20, emoji:'🚗', absurd:1000 },
+    bus:        { label:'Bus',           category:'Transportation', unit:'km',   unitLabel:'Distance (km)',        factor:0.08, emoji:'🚌', absurd:1000 },
+    flight:     { label:'Flight',        category:'Transportation', unit:'km',   unitLabel:'Distance (km)',        factor:0.25, emoji:'✈️', absurd:20000 },
+    electricity:{ label:'Electricity',   category:'Electricity',    unit:'kWh',  unitLabel:'Electricity used (kWh)', factor:0.80, emoji:'⚡', absurd:200 },
+    vegMeal:    { label:'Veg meal',      category:'Food',           unit:'meal', unitLabel:'Number of meals',      factor:0.5,  emoji:'🥗', absurd:10 },
+    nonVegMeal: { label:'Non-veg meal',  category:'Food',           unit:'meal', unitLabel:'Number of meals',      factor:2.0,  emoji:'🍖', absurd:10 },
+  };
+  const CATEGORY_COLOR = {
+    Transportation: 'var(--moss)',
+    Electricity: 'var(--gold)',
+    Food: 'var(--clay)'
+  };
+
+  /* ---------- Storage helpers ---------- */
+  const USER_KEY = 'cft_user_v1';
+  const ACT_KEY  = 'cft_activities_v1';
+
+  function loadUser(){
+    try{ const raw = localStorage.getItem(USER_KEY); return raw ? JSON.parse(raw) : null; }
+    catch(e){ return null; }
+  }
+  function saveUser(u){
+    try{ localStorage.setItem(USER_KEY, JSON.stringify(u)); }catch(e){}
+  }
+  function loadActivities(){
+    try{ const raw = localStorage.getItem(ACT_KEY); return raw ? JSON.parse(raw) : []; }
+    catch(e){ return []; }
+  }
+  function saveActivities(list){
+    try{ localStorage.setItem(ACT_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  let user = loadUser();
+  let activities = loadActivities();
+  let selectedType = 'car';
+
+  /* ---------- Date helpers (week = Mon-Sun) ---------- */
+  function toISODate(d){ return d.toISOString().slice(0,10); }
+  function startOfWeek(date){
+    const d = new Date(date);
+    const day = d.getDay(); // 0 Sun .. 6 Sat
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+  function endOfWeek(date){
+    const s = startOfWeek(date);
+    const e = new Date(s);
+    e.setDate(e.getDate()+6);
+    e.setHours(23,59,59,999);
+    return e;
+  }
+  function startOfMonth(date){ const d=new Date(date); d.setDate(1); d.setHours(0,0,0,0); return d; }
+
+  function inRange(actDateStr, start, end){
+    const t = new Date(actDateStr+'T12:00:00').getTime();
+    return t >= start.getTime() && t <= end.getTime();
+  }
+
+  /* ---------- Calculations ---------- */
+  function co2For(typeKey, qty){
+    const t = ACTIVITY_TYPES[typeKey];
+    if(!t || !isFinite(qty) || qty < 0) return 0;
+    return t.factor * qty;
+  }
+  function weekActivities(){
+    const s = startOfWeek(new Date()), e = endOfWeek(new Date());
+    return activities.filter(a => inRange(a.date, s, e));
+  }
+  function totalCO2(list){ return list.reduce((sum,a)=> sum + a.co2, 0); }
+  function categoryBreakdown(list){
+    const out = { Transportation:0, Electricity:0, Food:0 };
+    list.forEach(a => { out[a.category] = (out[a.category]||0) + a.co2; });
+    return out;
+  }
+
+  /* ---------- View switching ---------- */
+  function showOnboardIfNeeded(){
+    if(!user){
+      document.getElementById('view-onboard').hidden = false;
+      document.getElementById('view-app').hidden = true;
+    } else {
+      document.getElementById('view-onboard').hidden = true;
+      document.getElementById('view-app').hidden = false;
+      document.getElementById('userChip').textContent = user.name;
+      goto('dashboard');
+    }
+  }
+
+  function goto(viewName){
+    ['dashboard','log','history','target'].forEach(v=>{
+      document.getElementById('view-'+v).hidden = (v !== viewName);
+    });
+    document.querySelectorAll('#mainNav button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.view === viewName);
+    });
+    if(viewName === 'dashboard') renderDashboard();
+    if(viewName === 'log') renderLog();
+    if(viewName === 'history') renderHistory();
+    if(viewName === 'target') renderTarget();
+  }
+
+  document.getElementById('mainNav').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-view]');
+    if(btn) goto(btn.dataset.view);
+  });
+  document.addEventListener('click', (e)=>{
+    const g = e.target.closest('[data-goto]');
+    if(g) goto(g.dataset.goto);
+  });
+
+  /* ---------- Onboarding ---------- */
+  document.getElementById('onboardForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('ob-name').value.trim() || 'there';
+    const target = parseFloat(document.getElementById('ob-target').value) || 50;
+    user = { name, weeklyTarget: target };
+    saveUser(user);
+    showOnboardIfNeeded();
+  });
+
+  /* ---------- Dashboard ---------- */
+  function greetingWord(){
+    const h = new Date().getHours();
+    if(h < 12) return 'Good morning';
+    if(h < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function renderDashboard(){
+    const wk = weekActivities();
+    const total = totalCO2(wk);
+    const target = user.weeklyTarget || 50;
+    const pct = Math.min(total / target, 1);
+    const over = total > target;
+
+    document.getElementById('greeting').textContent = `${greetingWord()}, ${user.name.split(' ')[0]}`;
+    const s = startOfWeek(new Date()), e = endOfWeek(new Date());
+    const fmt = d => d.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+    document.getElementById('weekRangeLabel').textContent = `Week of ${fmt(s)} – ${fmt(e)}`;
+
+    // ring
+    const r = 92, circ = 2*Math.PI*r;
+    const ring = document.getElementById('ringProgress');
+    ring.style.strokeDasharray = circ;
+    ring.style.strokeDashoffset = circ * (1 - Math.min(pct,1));
+    ring.setAttribute('stroke', over ? 'var(--danger)' : 'var(--moss)');
+    document.getElementById('ringBig').textContent = `${total.toFixed(1)} kg`;
+    document.getElementById('ringLbl').textContent = `of ${target.toFixed(0)} kg target`;
+
+    const statusEl = document.getElementById('ringStatus');
+    if(over){
+      statusEl.className = 'ring-status over';
+      statusEl.textContent = `${(total-target).toFixed(1)} kg over target`;
+    } else {
+      statusEl.className = 'ring-status ok';
+      statusEl.textContent = wk.length ? `${(target-total).toFixed(1)} kg remaining — you're on track` : 'No activity logged yet this week';
+    }
+
+    document.getElementById('remainingText').textContent = wk.length
+      ? `${wk.length} ${wk.length===1?'entry':'entries'} logged this week.`
+      : 'Log an activity to get started.';
+
+    // breakdown
+    const bd = categoryBreakdown(wk);
+    const maxVal = Math.max(1, ...Object.values(bd));
+    const list = document.getElementById('breakdownList');
+    list.innerHTML = '';
+    Object.keys(bd).forEach(cat=>{
+      const row = document.createElement('div');
+      row.className = 'brow';
+      row.innerHTML = `
+        <span class="swatch" style="background:${CATEGORY_COLOR[cat]}"></span>
+        <span class="name">${cat}</span>
+        <span class="track"><span class="fill" style="width:${(bd[cat]/maxVal*100).toFixed(0)}%;background:${CATEGORY_COLOR[cat]}"></span></span>
+        <span class="val">${bd[cat].toFixed(1)} kg</span>`;
+      list.appendChild(row);
+    });
+
+    // nudge / tip
+    const slot = document.getElementById('nudgeSlot');
+    slot.innerHTML = '';
+    if(over){
+      const topCat = Object.entries(bd).sort((a,b)=>b[1]-a[1])[0];
+      const tips = {
+        Transportation: `Try public transport or carpooling for your next trip — it could save several kg of CO₂.`,
+        Electricity: `Turning off idle appliances and switching to LEDs can trim your electricity footprint.`,
+        Food: `Swapping a couple of non-veg meals for veg this week could cut a noticeable chunk of CO₂.`
+      };
+      const div = document.createElement('div');
+      div.className = 'nudge';
+      div.innerHTML = `<span class="icon">⚠️</span><div><strong>You're ${(total-target).toFixed(1)} kg over your weekly target</strong><p>Current: ${total.toFixed(1)} kg of ${target.toFixed(0)} kg. ${topCat ? tips[topCat[0]] : ''}</p></div>`;
+      slot.appendChild(div);
+    } else if(wk.length){
+      const div = document.createElement('div');
+      div.className = 'nudge tip';
+      div.innerHTML = `<span class="icon">🌱</span><div><strong>You're on track</strong><p>Keep it up for a greener week — ${(target-total).toFixed(1)} kg of headroom left.</p></div>`;
+      slot.appendChild(div);
+    }
+  }
+
+  /* ---------- Log activity ---------- */
+  function renderTypeGrid(){
+    const grid = document.getElementById('typeGrid');
+    grid.innerHTML = '';
+    Object.entries(ACTIVITY_TYPES).forEach(([key,t])=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'type-btn' + (key===selectedType ? ' active' : '');
+      b.dataset.key = key;
+      b.innerHTML = `<span class="emoji">${t.emoji}</span><span>${t.label}</span>`;
+      b.addEventListener('click', ()=>{ selectedType = key; renderLog(); });
+      grid.appendChild(b);
+    });
+  }
+
+  function updatePreview(){
+    const t = ACTIVITY_TYPES[selectedType];
+    document.getElementById('qtyLabel').textContent = t.unitLabel;
+    const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+    const co2 = co2For(selectedType, qty);
+    document.getElementById('co2Preview').textContent = `${co2.toFixed(1)} kg`;
+    const warnEl = document.getElementById('absurdWarn');
+    if(qty > t.absurd){
+      warnEl.hidden = false;
+      warnEl.textContent = `That's unusually high for a single entry (${t.unitLabel.toLowerCase()}) — double check before saving.`;
+    } else {
+      warnEl.hidden = true;
+    }
+  }
+
+  function renderLog(){
+    renderTypeGrid();
+    document.getElementById('dateInput').value = toISODate(new Date());
+    document.getElementById('qtyInput').value = '';
+    updatePreview();
+  }
+
+  document.getElementById('qtyInput').addEventListener('input', updatePreview);
+
+  document.getElementById('saveActivityBtn').addEventListener('click', ()=>{
+    const qty = parseFloat(document.getElementById('qtyInput').value);
+    const dateVal = document.getElementById('dateInput').value || toISODate(new Date());
+    if(!qty || qty <= 0){
+      document.getElementById('qtyInput').focus();
+      return;
+    }
+    const t = ACTIVITY_TYPES[selectedType];
+    const entry = {
+      id: 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      typeKey: selectedType,
+      type: t.label,
+      category: t.category,
+      quantity: qty,
+      unit: t.unit,
+      co2: co2For(selectedType, qty),
+      date: dateVal,
+      emoji: t.emoji
+    };
+    activities.push(entry);
+    saveActivities(activities);
+    goto('dashboard');
+  });
+
+  /* ---------- History ---------- */
+  document.getElementById('filterCategory').addEventListener('change', renderHistory);
+  document.getElementById('filterRange').addEventListener('change', renderHistory);
+
+  function renderHistory(){
+    const cat = document.getElementById('filterCategory').value;
+    const range = document.getElementById('filterRange').value;
+    let start, end = new Date(8640000000000000);
+    const now = new Date();
+    if(range === 'week'){ start = startOfWeek(now); end = endOfWeek(now); }
+    else if(range === 'month'){ start = startOfMonth(now); }
+    else { start = new Date(0); }
+
+    let list = activities.filter(a => inRange(a.date, start, end));
+    if(cat !== 'All') list = list.filter(a => a.category === cat);
+    list = list.slice().sort((a,b)=> b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+
+    const wrap = document.getElementById('historyList');
+    wrap.innerHTML = '';
+    if(!list.length){
+      wrap.innerHTML = `<div class="empty"><span class="emoji">🍃</span>Nothing logged for this filter yet.</div>`;
+      return;
+    }
+    list.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'entry';
+      const d = new Date(a.date+'T12:00:00');
+      row.innerHTML = `
+        <span class="emoji">${a.emoji}</span>
+        <div class="meta">
+          <div class="top">${a.type} · ${a.quantity} ${a.unit}</div>
+          <div class="date">${d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</div>
+        </div>
+        <div class="co2">${a.co2.toFixed(2)} kg</div>
+        <button class="del" title="Delete entry" data-id="${a.id}">✕</button>`;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll('.del').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        activities = activities.filter(a => a.id !== btn.dataset.id);
+        saveActivities(activities);
+        renderHistory();
+      });
+    });
+  }
+
+  /* ---------- Target ---------- */
+  document.getElementById('targetForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const v = parseFloat(document.getElementById('targetInput').value);
+    if(v > 0){
+      user.weeklyTarget = v;
+      saveUser(user);
+      renderTarget();
+    }
+  });
+
+  function renderTarget(){
+    document.getElementById('targetInput').value = user.weeklyTarget;
+    const body = document.getElementById('factorTableBody');
+    body.innerHTML = '';
+    Object.values(ACTIVITY_TYPES).forEach(t=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${t.emoji} ${t.label}</td><td class="num">${t.factor} kg/${t.unit}</td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  /* ---------- Init ---------- */
+  showOnboardIfNeeded();
+})();
+</script>
+</body>
+</html>
